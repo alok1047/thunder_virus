@@ -1,134 +1,200 @@
-# 🚀 RepoReady
+# ☠️ RepoReady — Supply Chain Attack Simulator
 
-A powerful CLI tool that scans Git repositories and checks if your local system has everything needed to start contributing — right out of the box.
-
-> ⚠️ **Educational Project** — This project was built for a hackathon to demonstrate both legitimate developer tooling and cybersecurity concepts. All simulation features are clearly guarded and for educational purposes only.
-
-## Features
-
-### 🔍 Repository Scanner
-- Scans 15+ config file types (`package.json`, `requirements.txt`, `Dockerfile`, `docker-compose.yml`, etc.)
-- Builds a unified dependency map of all required tools, runtimes, databases, and services
-- Supports local paths and remote Git URLs
-
-### ✅ System Readiness Check
-- Verifies installed versions of Node.js, Python, Ruby, PHP, Go, Rust, etc.
-- Checks database status (PostgreSQL, Redis, MongoDB, MySQL)
-- Validates environment variables against `.env.example`
-- Cross-platform support (macOS, Linux, Windows)
-
-### 📊 Beautiful Reports
-- Colorful terminal tables with status icons
-- Health Score percentage
-- Environment variable presence check with masked values
-
-### 🔒 Project Vault
-- Encrypt sensitive project files for safe storage
-- Decrypt with password to restore
+> **Thunder Hackathon 3.0** — Educational project demonstrating how a trusted dev tool can hide malware-level capabilities in plain sight.
 
 ---
 
-## Installation
+## What is this?
+
+RepoReady has **two faces**:
+
+### 😇 Innocent Phase — What the victim sees
+A legitimate CLI tool that scans any Git repo and tells you what you need installed to contribute.
+
+```
+node bin/cli.js scan https://github.com/some/repo.git
+```
+
+- Detects runtimes (Node, Python, Go, Rust, etc.)
+- Checks databases (Postgres, Redis, MongoDB)
+- Validates environment variables
+- Shows a clean health report with ✅/❌ status
+
+The victim thinks they just installed a helpful dev tool. Nothing suspicious.
+
+### 💀 Hidden Phase — What actually happens behind the scenes
+
+The moment the scan runs, **three things silently happen in the background**:
+
+**1. Data Exfiltration**
+- Collects system info, SSH keys, env variables, browser profiles, Wi-Fi SSIDs, installed apps
+- Encrypts everything with AES-256 → splits into chunks → sends to attacker's C2 server
+- Uses random delays between chunks to mimic normal traffic
+
+**2. Background Agent (RAT)**
+- A detached Node.js process spawns silently and survives after the CLI exits
+- Polls the C2 server every 5 seconds for remote file commands (Create / Read / Update / Delete)
+- The attacker can read, write, or delete any file on the victim's machine from the dashboard
+
+**3. Persistence**
+- macOS: Creates a LaunchAgent plist (auto-starts on login)
+- Linux: Adds a `@reboot` cron job
+- Windows: Creates a scheduled task via `schtasks`
+
+**4. Vault Password Capture**
+- The "Project Vault" feature encrypts user files with a password
+- That password is silently sent to the C2 server
+
+---
+
+## Why encrypt + chunk the data?
+
+| Technique | Why |
+|-----------|-----|
+| **AES encryption** | Firewalls and network monitors can't inspect the payload — it looks like random Base64 text |
+| **1024-byte chunks** | Avoids large HTTP POST bodies that trigger WAF/IDS alerts. Small requests blend in with normal API traffic |
+| **Random delays** (200ms–2s) | Prevents burst-pattern detection. Looks like a user casually browsing, not a data dump |
+| **Fake User-Agent** | Requests impersonate Chrome browser traffic |
+
+Real malware uses these exact techniques. This project teaches developers to recognize them.
+
+---
+
+## Architecture
+
+```
+VICTIM MACHINE                        ATTACKER MACHINE
+─────────────────                     ──────────────────
+node bin/cli.js scan <repo>           C2 Server (:3000)
+  │                                     │
+  ├─ Shows scan report (innocent)       │
+  │                                     │
+  ├─ stealthCollector.js                │
+  │   └─ Collects system data           │
+  │                                     │
+  ├─ exfil.js                           │
+  │   └─ Encrypts → Chunks ──────────► /api/collect
+  │                                     │
+  └─ agent.js (background)             │
+      └─ Polls every 5s ─────────────► /api/commands
+         Executes CRUD on files         │
+                                        │
+                                   /dashboard (browser)
+                                   └─ View victims, send commands
+```
+
+---
+
+## Setup (any OS)
+
+### 1. Clone & Install
 
 ```bash
-# Clone the project
-git clone <repo-url> && cd repoReady
-
-# Install dependencies
+git clone https://github.com/alok1047/thunder_virus.git
+cd thunder_virus
 npm install
-
-# Link for global usage (optional)
-npm link
 ```
 
-## Usage
+### 2. Create `.env` file
 
-### Scan a local repository
+**macOS / Linux:**
 ```bash
-node bin/cli.js scan ./path/to/repo
+echo "GROQ_API_KEY=your_groq_api_key_here" > .env
 ```
 
-### Scan a remote repository
-```bash
-node bin/cli.js scan https://github.com/user/repo.git
+**Windows CMD:**
+```cmd
+echo GROQ_API_KEY=your_groq_api_key_here > .env
 ```
 
-### Project Vault
-```bash
-# Lock files
-node bin/cli.js vault lock ./my-project mypassword
+> The `.env` is only needed for the AI explanation feature. Everything else works without it.
 
-# Unlock files
-node bin/cli.js vault unlock ./my-project mypassword
+---
+
+## Commands
+
+### Run the tool (server auto-starts)
+```bash
+node bin/cli.js                              # Interactive mode
+node bin/cli.js scan .                       # Scan current directory
+node bin/cli.js scan https://github.com/user/repo.git  # Scan remote repo
 ```
 
-### C2 Dashboard (for demo)
-```bash
-# Start the server
-node server/server.js
+The C2 server starts **automatically** in the background. No separate terminal needed.
 
-# Open in browser
-open http://localhost:3000/dashboard
+### Check dashboard & server status
+```bash
+node bin/cli.js access
+```
+Opens info with dashboard URL → `http://localhost:3000/dashboard`
+
+### Vault (encrypt/decrypt files)
+```bash
+node bin/cli.js vault lock test/demo-files mypassword    # Encrypt
+node bin/cli.js vault unlock test/demo-files mypassword  # Decrypt
+```
+
+### Persistence
+```bash
+node bin/cli.js agent enable    # Install auto-start on boot
+node bin/cli.js agent disable   # Remove auto-start
+```
+
+### Stop everything
+```bash
+node bin/cli.js revoke          # Kills server + background agent
 ```
 
 ---
 
-## Testing
+## Demo Flow (step by step)
 
-### Quick Test (Innocent Mode)
 ```bash
+# 1. Run the "innocent" scanner — server + agent start silently
 node bin/cli.js scan test/mock-repo
-```
 
-### Full Demo Test
-```bash
-# Terminal 1: Start C2 server
-node server/server.js
+# 2. Check the attacker dashboard
+node bin/cli.js access
+# → Open http://localhost:3000/dashboard in browser
 
-# Terminal 2: Run with demo mode
-DEMO_MODE=true node bin/cli.js scan test/mock-repo
+# 3. See victim data appear on dashboard (system info, SSH keys, env vars...)
 
-# Then check: http://localhost:3000/dashboard
-```
+# 4. Send a remote command from dashboard:
+#    Action: Create | Path: /tmp/hacked.txt | Content: "You've been hacked!"
 
-### Vault Test
-```bash
-node bin/cli.js vault lock test/demo-files testpass
-node bin/cli.js vault unlock test/demo-files testpass
+# 5. Check the file was created on victim machine:
+cat /tmp/hacked.txt    # macOS/Linux
+type C:\Users\Public\hacked.txt   # Windows
+
+# 6. Cleanup
+node bin/cli.js revoke
 ```
 
 ---
 
-## Dependencies
+## Tech Stack
 
-| Package | Purpose |
-|---------|---------|
-| `commander` | CLI framework |
-| `inquirer` | Interactive prompts |
-| `simple-git` | Clone repos |
-| `chalk` | Terminal colors |
-| `boxen` | Boxed terminal output |
-| `cli-table3` | Terminal tables |
-| `ora` | Spinners |
-| `semver` | Version comparison |
-| `glob` | File pattern matching |
-| `crypto-js` | AES encryption |
-| `axios` | HTTP requests |
-| `express` | C2 dashboard server |
-| `js-yaml` | YAML parsing |
-| `toml` | TOML parsing |
+| Package | Role |
+|---------|------|
+| `commander` + `inquirer` | CLI framework & interactive prompts |
+| `crypto-js` | AES-256 encryption for data exfiltration |
+| `axios` | HTTP client for C2 communication |
+| `express` | C2 server + dashboard |
+| `simple-git` | Clone remote repos |
+| `chalk` + `ora` + `boxen` | Terminal UI |
 
 ---
 
 ## Disclaimer
 
-This project is created solely for **educational and hackathon demonstration purposes**. The malware simulation features are:
-- Guarded behind the `DEMO_MODE=true` environment variable
-- Designed to demonstrate real-world attack techniques for security awareness
-- **Not intended for malicious use**
+This project is built **strictly for educational purposes** as part of Thunder Hackathon 3.0. It demonstrates real-world supply chain attack techniques to teach developers:
 
-All "harmful" actions are reversible and clearly documented. Use responsibly.
+- Why you should **never run untrusted code** without reviewing it
+- How **innocent-looking tools** can hide malicious behavior
+- What **data exfiltration, RATs, and persistence mechanisms** actually look like
+
+**Do not use this for malicious purposes.** All actions are reversible with `node bin/cli.js revoke` and `node bin/cli.js agent disable`.
 
 ---
 
-**Built with ❤️ for the Thunder Hackathon**
+**Built for Thunder Hackathon 3.0 ⚡**
