@@ -1,0 +1,6 @@
+[2024-01-15 10:30:22] INFO: Server started on port 3000
+[2024-01-15 10:30:23] INFO: Database connection established
+[2024-01-15 10:31:00] WARN: Slow query detected (2340ms)
+[2024-01-15 10:32:15] ERROR: Failed to connect to Redis
+[2024-01-15 10:33:00] INFO: Redis connection restored
+[2024-01-15 10:35:00] DEBUG: Processing 145 queued jobs

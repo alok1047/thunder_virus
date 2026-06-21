@@ -1,0 +1,4 @@
+These are my important project notes.
+Remember to update the API keys before deployment.
+The database migration scripts are in /scripts/migrations.
+Contact the team lead for production credentials.

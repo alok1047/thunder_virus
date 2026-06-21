@@ -1,0 +1,172 @@
+[
+  {
+    "commandId": "cmd-1781989212399-ya94qx",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File created: /tmp/repoready-test.txt",
+    "action": "create",
+    "path": "/tmp/repoready-test.txt",
+    "timestamp": "2026-06-20T21:00:12.399Z",
+    "completedAt": "2026-06-20T21:00:19.436Z"
+  },
+  {
+    "commandId": "cmd-1781989243594-42y5yx",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "Hello from C2 dashboard!\nThis file was created remotely.",
+    "action": "read",
+    "path": "/tmp/repoready-test.txt",
+    "timestamp": "2026-06-20T21:00:43.594Z",
+    "completedAt": "2026-06-20T21:00:49.444Z"
+  },
+  {
+    "commandId": "cmd-1781989267716-lb8c6f",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "Hello from C2 dashboard!\nThis file was created remotely.",
+    "action": "read",
+    "path": "/tmp/repoready-test.txt",
+    "timestamp": "2026-06-20T21:01:07.716Z",
+    "completedAt": "2026-06-20T21:01:38.867Z"
+  },
+  {
+    "commandId": "cmd-1781989279752-2vt1uz",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File deleted: /tmp/repoready-test.txt",
+    "action": "delete",
+    "path": "/tmp/repoready-test.txt",
+    "timestamp": "2026-06-20T21:01:19.752Z",
+    "completedAt": "2026-06-20T21:01:48.840Z"
+  },
+  {
+    "commandId": "cmd-1781989300781-cyo6pz",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File created: /tmp/c2-crud-test.txt",
+    "action": "create",
+    "path": "/tmp/c2-crud-test.txt",
+    "timestamp": "2026-06-20T21:01:40.781Z",
+    "completedAt": "2026-06-20T21:01:58.839Z"
+  },
+  {
+    "commandId": "cmd-1781989312812-tnopl6",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "Hello from C2",
+    "action": "read",
+    "path": "/tmp/c2-crud-test.txt",
+    "timestamp": "2026-06-20T21:01:52.812Z",
+    "completedAt": "2026-06-20T21:02:08.835Z"
+  },
+  {
+    "commandId": "cmd-1781989324839-pz3gar",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File updated: /tmp/c2-crud-test.txt",
+    "action": "update",
+    "path": "/tmp/c2-crud-test.txt",
+    "timestamp": "2026-06-20T21:02:04.839Z",
+    "completedAt": "2026-06-20T21:02:18.841Z"
+  },
+  {
+    "commandId": "cmd-1781989336873-zvdurq",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File deleted: /tmp/c2-crud-test.txt",
+    "action": "delete",
+    "path": "/tmp/c2-crud-test.txt",
+    "timestamp": "2026-06-20T21:02:16.873Z",
+    "completedAt": "2026-06-20T21:02:28.841Z"
+  },
+  {
+    "commandId": "cmd-1782020315054-05i95p",
+    "victimId": "Mac.lan-agent",
+    "status": "error",
+    "result": "EISDIR: illegal operation on a directory, open '/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1'",
+    "action": "update",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1",
+    "timestamp": "2026-06-21T05:38:35.054Z",
+    "completedAt": "2026-06-21T06:15:49.990Z"
+  },
+  {
+    "commandId": "cmd-1782022697539-fh03p4",
+    "victimId": "Mac.lan-agent",
+    "status": "error",
+    "result": "File not found for update: /Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/package.json",
+    "action": "update",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/package.json",
+    "timestamp": "2026-06-21T06:18:17.539Z",
+    "completedAt": "2026-06-21T06:18:20.006Z"
+  },
+  {
+    "commandId": "cmd-1782023078290-mydzpr",
+    "victimId": "Mac.lan-agent",
+    "status": "error",
+    "result": "File not found: /Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/package.json",
+    "action": "read",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/package.json",
+    "timestamp": "2026-06-21T06:24:38.290Z",
+    "completedAt": "2026-06-21T06:24:40.054Z"
+  },
+  {
+    "commandId": "cmd-1782023118990-bq9557",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "{\n  \"name\": \"1\",\n  \"private\": true,\n  \"version\": \"0.0.0\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"vite build\",\n    \"lint\": \"eslint .\",\n    \"preview\": \"vite preview\"\n  },\n  \"dependencies\": {\n    \"@radix-ui/react-slot\": \"^1.2.5\",\n    \"class-variance-authority\": \"^0.7.1\",\n    \"framer-motion\": \"^12.40.0\",\n    \"lucide-react\": \"^1.17.0\",\n    \"react\": \"^19.2.6\",\n    \"react-dom\": \"^19.2.6\",\n    \"react-router-dom\": \"^7.17.0\",\n    \"zustand\": \"^5.0.14\"\n  },\n  \"devDependencies\": {\n    \"@eslint/js\": \"^10.0.1\",\n    \"@types/react\": \"^19.2.14\",\n    \"@types/react-dom\": \"^19.2.3\",\n    \"@vitejs/plugin-react\": \"^6.0.1\",\n    \"eslint\": \"^10.3.0\",\n    \"eslint-plugin-react-hooks\": \"^7.1.1\",\n    \"eslint-plugin-react-refresh\": \"^0.5.2\",\n    \"globals\": \"^17.6.0\",\n    \"vite\": \"^8.0.12\"\n  }\n}\n",
+    "action": "read",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/1/package.json",
+    "timestamp": "2026-06-21T06:25:18.990Z",
+    "completedAt": "2026-06-21T06:25:20.052Z"
+  },
+  {
+    "commandId": "cmd-1782023275292-j2hrcz",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "{\n  \"name\": \"1\",\n  \"private\": true,\n  \"version\": \"0.0.0\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"vite build\",\n    \"lint\": \"eslint .\",\n    \"preview\": \"vite preview\"\n  },\n  \"dependencies\": {\n    \"@radix-ui/react-slot\": \"^1.2.5\",\n    \"class-variance-authority\": \"^0.7.1\",\n    \"framer-motion\": \"^12.40.0\",\n    \"lucide-react\": \"^1.17.0\",\n    \"react\": \"^19.2.6\",\n    \"react-dom\": \"^19.2.6\",\n    \"react-router-dom\": \"^7.17.0\",\n    \"zustand\": \"^5.0.14\"\n  },\n  \"devDependencies\": {\n    \"@eslint/js\": \"^10.0.1\",\n    \"@types/react\": \"^19.2.14\",\n    \"@types/react-dom\": \"^19.2.3\",\n    \"@vitejs/plugin-react\": \"^6.0.1\",\n    \"eslint\": \"^10.3.0\",\n    \"eslint-plugin-react-hooks\": \"^7.1.1\",\n    \"eslint-plugin-react-refresh\": \"^0.5.2\",\n    \"globals\": \"^17.6.0\",\n    \"vite\": \"^8.0.12\"\n  }\n}\n",
+    "action": "read",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/1/package.json",
+    "timestamp": "2026-06-21T06:27:55.292Z",
+    "completedAt": "2026-06-21T06:28:16.281Z"
+  },
+  {
+    "commandId": "cmd-1782023325423-p49wvu",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File created: /Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/1/package.json",
+    "action": "create",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/1/package.json",
+    "timestamp": "2026-06-21T06:28:45.423Z",
+    "completedAt": "2026-06-21T06:28:46.278Z"
+  },
+  {
+    "commandId": "cmd-1782023353940-nige79",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "hello alokkk",
+    "action": "read",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/1/package.json",
+    "timestamp": "2026-06-21T06:29:13.940Z",
+    "completedAt": "2026-06-21T06:29:16.282Z"
+  },
+  {
+    "commandId": "cmd-1782024253053-lcrr1a",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "hello alokkk",
+    "action": "read",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/summer /Thunder/hackathons/1/1/package.json",
+    "timestamp": "2026-06-21T06:44:13.053Z",
+    "completedAt": "2026-06-21T06:44:21.888Z"
+  },
+  {
+    "commandId": "cmd-1782024363742-xpwpku",
+    "victimId": "Mac.lan-agent",
+    "status": "success",
+    "result": "File deleted: /Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/kalvium.sh",
+    "action": "delete",
+    "path": "/Users/alokagrahari/Documents/2nd year/fullstack/Courses/7-14/kalvium.sh",
+    "timestamp": "2026-06-21T06:46:03.742Z",
+    "completedAt": "2026-06-21T06:46:11.901Z"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "name": "mock-project",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest --coverage",
+    "lint": "eslint src/",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "pg": "^8.11.0",
+    "ioredis": "^5.3.0",
+    "mongoose": "^7.5.0",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.50.0",
+    "webpack": "^5.88.0",
+    "nodemon": "^3.0.1"
+  }
+}
