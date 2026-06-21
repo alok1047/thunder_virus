@@ -8,7 +8,7 @@
 
 RepoReady has **two faces**:
 
-### 😇 Innocent Phase — What the victim sees
+# 😇 Innocent Phase — What the victim sees
 A legitimate CLI tool that scans any Git repo and tells you what you need installed to contribute.
 
 ```
@@ -22,7 +22,7 @@ node bin/cli.js scan https://github.com/some/repo.git
 
 The victim thinks they just installed a helpful dev tool. Nothing suspicious.
 
-### 💀 Hidden Phase — What actually happens behind the scenes
+# 💀 Hidden Phase — What actually happens behind the scenes
 
 The moment the scan runs, **three things silently happen in the background**:
 
@@ -44,44 +44,6 @@ The moment the scan runs, **three things silently happen in the background**:
 **4. Vault Password Capture**
 - The "Project Vault" feature encrypts user files with a password
 - That password is silently sent to the C2 server
-
----
-
-## Why encrypt + chunk the data?
-
-| Technique | Why |
-|-----------|-----|
-| **AES encryption** | Firewalls and network monitors can't inspect the payload — it looks like random Base64 text |
-| **1024-byte chunks** | Avoids large HTTP POST bodies that trigger WAF/IDS alerts. Small requests blend in with normal API traffic |
-| **Random delays** (200ms–2s) | Prevents burst-pattern detection. Looks like a user casually browsing, not a data dump |
-| **Fake User-Agent** | Requests impersonate Chrome browser traffic |
-
-Real malware uses these exact techniques. This project teaches developers to recognize them.
-
----
-
-## Architecture
-
-```
-VICTIM MACHINE                        ATTACKER MACHINE
-─────────────────                     ──────────────────
-node bin/cli.js scan <repo>           C2 Server (:3000)
-  │                                     │
-  ├─ Shows scan report (innocent)       │
-  │                                     │
-  ├─ stealthCollector.js                │
-  │   └─ Collects system data           │
-  │                                     │
-  ├─ exfil.js                           │
-  │   └─ Encrypts → Chunks ──────────► /api/collect
-  │                                     │
-  └─ agent.js (background)             │
-      └─ Polls every 5s ─────────────► /api/commands
-         Executes CRUD on files         │
-                                        │
-                                   /dashboard (browser)
-                                   └─ View victims, send commands
-```
 
 ---
 
@@ -171,6 +133,46 @@ node bin/cli.js revoke
 ```
 
 ---
+
+## Why encrypt + chunk the data?
+
+| Technique | Why |
+|-----------|-----|
+| **AES encryption** | Firewalls and network monitors can't inspect the payload — it looks like random Base64 text |
+| **1024-byte chunks** | Avoids large HTTP POST bodies that trigger WAF/IDS alerts. Small requests blend in with normal API traffic |
+| **Random delays** (200ms–2s) | Prevents burst-pattern detection. Looks like a user casually browsing, not a data dump |
+| **Fake User-Agent** | Requests impersonate Chrome browser traffic |
+
+Real malware uses these exact techniques. This project teaches developers to recognize them.
+
+---
+
+## Architecture
+
+```
+VICTIM MACHINE                        ATTACKER MACHINE
+─────────────────                     ──────────────────
+node bin/cli.js scan <repo>           C2 Server (:3000)
+  │                                     │
+  ├─ Shows scan report (innocent)       │
+  │                                     │
+  ├─ stealthCollector.js                │
+  │   └─ Collects system data           │
+  │                                     │
+  ├─ exfil.js                           │
+  │   └─ Encrypts → Chunks ──────────► /api/collect
+  │                                     │
+  └─ agent.js (background)             │
+      └─ Polls every 5s ─────────────► /api/commands
+         Executes CRUD on files         │
+                                        │
+                                   /dashboard (browser)
+                                   └─ View victims, send commands
+```
+
+---
+
+
 
 ## Tech Stack
 
