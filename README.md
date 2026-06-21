@@ -1,4 +1,4 @@
-# ☠️ RepoReady — Supply Chain Attack Simulator
+# ☠️ Thunder_Virus— Supply Chain Attack 
 
 > **Thunder Hackathon 3.0** — Educational project demonstrating how a trusted dev tool can hide malware-level capabilities in plain sight.
 
@@ -6,7 +6,7 @@
 
 ## What is this?
 
-RepoReady has **two faces**:
+Thunder_Virus has **two faces**:
 
 # 😇 Innocent Phase — What the victim sees
 A legitimate CLI tool that scans any Git repo and tells you what you need installed to contribute.
