@@ -61,13 +61,13 @@ npm install
 
 **macOS / Linux:**
 ```bash
-echo "GROQ_API_KEY=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" > .env
+echo "GROQ_API_KEY=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" > .env
 ```
 this api key is for testing only , please dont misuse it !!
 
 **Windows CMD:**
 ```cmd
-echo GROQ_API_KEY=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 > .env
+echo GROQ_API_KEY=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> .env
 ```
 
 > The `.env` is only needed for the AI explanation feature. Everything else works without it.
